@@ -1,6 +1,7 @@
 import random
 from tool_kit import rank_card, get_combinations, have_same, orphan_count
 #2024-9-3第一次上传github 测试 fff
+#学习git中
 names = {
     0: 'm',
     1: 'p',
@@ -15,7 +16,7 @@ names = {
 }
 names_reversed = {value: key for key, value in names.items()}
 
-
+#再测一下
 # 卡片
 class card(object):
     def __init__(self, rank, suit, aka=False):
