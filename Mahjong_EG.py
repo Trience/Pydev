@@ -1,6 +1,6 @@
 import random
 from tool_kit import rank_card, get_combinations, have_same, orphan_count
-
+#2024-9-3第一次上传github 测试 fff
 names = {
     0: 'm',
     1: 'p',
