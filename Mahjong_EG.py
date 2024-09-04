@@ -1,7 +1,6 @@
 import random
 from tool_kit import rank_card, get_combinations, have_same, orphan_count
-#2024-9-3第一次上传github 测试 fff
-#学习git中
+
 names = {
     0: 'm',
     1: 'p',
@@ -16,13 +15,12 @@ names = {
 }
 names_reversed = {value: key for key, value in names.items()}
 
-#再测一下
-# 卡片
+
 class card(object):
     def __init__(self, rank, suit, aka=False):
         self.suit = suit
         self.rank = rank
-        self.aka = aka  #布尔值，是否是赤宝牌
+        self.aka = aka  # 布尔值，是否是赤宝牌
 
     def copy(self):
         return card(self.rank, self.suit)
@@ -30,7 +28,7 @@ class card(object):
     # 方便内部统计的小编号
     private = 0
 
-    #names = ['m', 'p', 's', '東', '南', '西', '北', '白', '發', '中']
+    # names = ['m', 'p', 's', '東', '南', '西', '北', '白', '發', '中']
 
     # 基础地反馈一个标准编号
     def display(self):
@@ -164,13 +162,13 @@ class hand():
 
     def interaction(self):
 
-        #可以鸣牌的情况
+        # 可以鸣牌的情况
         inter = {
             'c': {},
             'p': {},
             'g': {}
         }
-        #注意c的储存格式不一样！！！
+        # 注意c的储存格式不一样！！！
         for i in range(len(self.move) - 1):
             j = 0
             while True:
@@ -211,7 +209,7 @@ class hand():
     discard = collection("discard")
 
     def print_all(self):
-        #打印所有牌
+        # 打印所有牌
         print("可动手牌:", end=' ')
         for units in self.move:
             print(units, end=" ")
@@ -236,7 +234,7 @@ class hand():
             print(' | ')
         print('')
 
-    #理牌
+    # 理牌
 
     def clean(self):
         temp = []
@@ -262,7 +260,7 @@ class hand():
         self.clean()
         self.inter = self.interaction()
 
-    #以[索引，索引，索引，类型]的格式显示可以成一组牌的牌
+    # 以[索引，索引，索引，类型]的格式显示可以成一组牌的牌
 
     def possible_detect(self):
         i = 0
@@ -270,7 +268,7 @@ class hand():
         self.respond = []
         self.pair = []
 
-        #已经成形的所有组合
+        # 已经成形的所有组合
         while i < len(self.move) - 2:
             # print(type(self.move[i]))
             if (self.move[i].rank == self.move[i + 1].rank - 1 == self.move[i + 2].rank - 2 and self.move[i].suit ==
@@ -289,7 +287,7 @@ class hand():
     def wait(self):
 
         waiting = []
-        #国士
+        # 国士
         if (orphan_count(self.move) == 12 and len(self.pair) == 1):
             ref = [card(1, 0), card(9, 0), card(1, 1), card(9, 1), card(1, 2), card(1, 2), card(0, 3), card(0, 4),
                    card(0, 5), card(0, 6), card(0, 7), card(0, 8), card(0, 9)]
@@ -339,7 +337,7 @@ class hand():
                                 lala += one[:3]
                             # print(lala)
                             left = self.move
-                            right = []  #正在听牌中的两张牌
+                            right = []  # 正在听牌中的两张牌
                             # print("LEFT:", left)
                             n = len(left)
                             for i in range(0, n):
@@ -403,8 +401,8 @@ class hand():
         return final_waiting
 
 
-#牌河
-class river(collection):
+# 牌河
+class river():
     def __init__(self):
         self.rivers = [[], [], [], []]
         self.repeat = [set(), set(), set(), set()]
@@ -420,11 +418,11 @@ class player(object):
     def __init__(self, name, wind, button, score, ranking):
         self.name = name
         self.wind = wind
-        self.button = button  #Is button or not, boolean
+        self.button = button  # Is button or not, boolean
         self.score = score
         self.ranking = ranking
         self.hand = hand()
-        self.pure = True  #被别人碰过吗
+        self.pure = True  # 被别人碰过吗
 
     def copy(self):
         return player(self.name, self.wind, self.button, self.score, self.ranking)
@@ -465,7 +463,7 @@ class player(object):
         if ans in ['Y', 'y']:
             target = self.hand.inter['c'][new]
             choice = 0
-            #Markpoint 需要防报错
+            # Markpoint 需要防报错
             if len(target) > 1:
                 print('输入希望用来吃的牌组的编号')
                 i = 1
@@ -481,7 +479,7 @@ class player(object):
             temp.append(self.hand.move[j])
             temp.append(new)
             temp.append('straight')
-            #temp.append((self.name + 3) % 4)
+            # temp.append((self.name + 3) % 4)
             self.hand.shown.append(temp)
             self.hand.move.pop(i)
             self.hand.move.pop(j - 1)
@@ -512,7 +510,7 @@ class player(object):
 
     def gang(self, new, round, add):
         self.hand.print_all()
-        #add是可能存在的杠牌
+        # add是可能存在的杠牌
         ans = input('{}号玩家，你是否要杠{}?Y/N'.format(self.name, new))
         if ans in ['Y', 'y']:
             temp = []
@@ -537,15 +535,15 @@ class player(object):
 
 class round(object):
 
-    #but_pos is the button player's number
-    #players是整句游戏中的编码，不是一轮中的风向
+    # but_pos is the button player's number
+    # players是整句游戏中的编码，不是一轮中的风向
 
     def __init__(self, but_pos, pool, players):
         self.but_pos = but_pos
-        self.pool = pool  #场供
-        self.players = players  #传入的玩家信息
-        self.river = river()  #牌河
-        self.turn = but_pos  #到谁出牌 (每回合更新)
+        self.pool = pool  # 场供
+        self.players = players  # 传入的玩家信息
+        self.river = river()  # 牌河
+        self.turn = but_pos  # 到谁出牌 (每回合更新)
 
         self.draw = pile('')
         self.draw.ini()
@@ -567,27 +565,27 @@ class round(object):
             self.players[i].hand.initiate()
 
     def around(self, num, last):
-        #返回的格式是(出了牌的玩家，出的牌)
+        # 返回的格式是(出了牌的玩家，出的牌)
         self.history = len(self.draw.total) - 14
-        #num是现在几号玩家出票,last是上一张牌
+        # num是现在几号玩家出票,last是上一张牌
 
-        respond = None  #是否有玩家应答
-        who = num  #谁出了牌
-        #询问碰，杠
+        respond = None  # 是否有玩家应答
+        who = num  # 谁出了牌
+        # 询问碰，杠
         for one in self.players:
             if one.name == (num + 3) % 4:
                 continue
             pon = list(one.hand.inter['p'].keys())
             gang = list(one.hand.inter['g'].keys())
             if last in pon:
-                ans = one.pon(last, self.history)  #碰
+                ans = one.pon(last, self.history)  # 碰
                 if ans:
                     self.players[(num + 3) % 4].pure = False
                     respond = ans
                     who = one.name
                     break
             if last in gang:
-                ans = one.gang(last, self.history, self.draw.total[-1])  #碰
+                ans = one.gang(last, self.history, self.draw.total[-1])  # 碰
                 if ans:
                     self.draw.total.pop(-1)
                     self.players[(num + 3) % 4].pure = False
@@ -598,16 +596,16 @@ class round(object):
                     who = one.name
                     break
         if respond:
-            #谁出了牌，出了什么牌
+            # 谁出了牌，出了什么牌
             return ([who, respond])
-        #到num号玩家行动！
+        # 到num号玩家行动！
         if last in list(self.players[num].hand.inter['c'].keys()):
-            respond = self.players[num].chi(last, self.history)  #吃
+            respond = self.players[num].chi(last, self.history)  # 吃
             if respond:
                 self.players[(num + 3) % 4].pure = False
                 return ([num, respond])
-        #牌进入牌河
-        self.river.rivers[(num + 3) % 4].append(last)  #放进牌河
+        # 牌进入牌河
+        self.river.rivers[(num + 3) % 4].append(last)  # 放进牌河
         self.river.update((num + 3) % 4, last)
         print("東{}局".format(self.but_pos + 1), end=', ')
         self.players[num].hand.move.append(self.draw.total.pop(0))
@@ -620,10 +618,11 @@ class round(object):
         return 0
 
 
+'''
 class IA_reserve():
     # 分析给定的14张牌中有多少幺九牌
 
-
+    
     # IA分析
     def ia(self, num):
         drawer = pile("temp")
@@ -634,15 +633,15 @@ class IA_reserve():
             if i % (num / 50) == 0:
                 print("|", end="")
             drawer.shuffle()
-            result[self.orphan_count()] += 1
-            if self.orphan_count() == 13:
+            result[orphan_count()] += 1
+            if orphan_count() == 13:
                 print("在第%d次模拟时玩家天听/天胡国士无双十三面" % (i + 1))
                 for item in drawer.total[0:14]:
                     print(item, end=" ")
             i += 1
         print()
         return result
-
+    
     def second(self, num):
         drawer = pile("temp")
         drawer.ini()
@@ -660,32 +659,33 @@ class IA_reserve():
             i += 1
         print()
         return result
+'''
 
 
 def demo():
     mypile = pile("mypile")
-    testant = hand("test")
+    testant = hand()
     # 初始化和洗牌
     mypile.ini()
-    #print(mypile.dora[0], mypile.doradown[0])
+    # print(mypile.dora[0], mypile.doradown[0])
 
     return 0
 
-    #testant.print_all()
+    # testant.print_all()
 
 
-#demo()
+# demo()
 
 
 def test_wait():
     test_hand = hand()
 
-    #test_hand.move = [card(1, 1), card(1, 1), card(1, 1), card(6, 1), card(7, 1), card(8, 1), card(1, 2), card(2, 2),card(3, 2), card(3, 0), card(3, 0), card(4, 1), card(5, 1)]
+    # test_hand.move = [card(1, 1), card(1, 1), card(1, 1), card(6, 1), card(7, 1), card(8, 1), card(1, 2), card(2, 2),card(3, 2), card(3, 0), card(3, 0), card(4, 1), card(5, 1)]
 
     test_hand.move = [card(1, 1), card(1, 1), card(1, 1), card(3, 1), card(2, 1), card(4, 1), card(5, 1), card(6, 1),
                       card(7, 1), card(8, 1), card(9, 1), card(9, 1), card(9, 1)]
-    #test_hand.total = [card(1, 1), card(1, 1), card(6, 1), card(6, 1), card(8, 1), card(8, 1), card(2, 2), card(2, 2),
-    #card(3, 2), card(3, 0), card(3, 0), card(5, 1), card(5, 1)]
+    # test_hand.total = [card(1, 1), card(1, 1), card(6, 1), card(6, 1), card(8, 1), card(8, 1), card(2, 2), card(2, 2),
+    # card(3, 2), card(3, 0), card(3, 0), card(5, 1), card(5, 1)]
     test_hand.initiate()
 
     print(len(test_hand.move))
@@ -708,19 +708,18 @@ def demo_inter():
     d = player(3, 3, 0, 25000, 4)
 
     test_hand = hand()
-    #test_hand.total = [card(1, 1), card(1, 1), card(6, 1), card(6, 1), card(8, 1), card(8, 1), card(2, 2), card(2, 2),
-    #card(3, 2), card(3, 0), card(3, 0), card(5, 1), card(5, 1)]
-    #test_hand.move = [card(1, 1), card(1, 1), card(1, 1), card(6, 1), card(7, 1), card(8, 1), card(1, 2), card(2, 2),card(3, 2), card(3, 0), card(3, 0), card(4, 1), card(5, 1)]
+    # test_hand.total = [card(1, 1), card(1, 1), card(6, 1), card(6, 1), card(8, 1), card(8, 1), card(2, 2), card(2, 2),
+    # card(3, 2), card(3, 0), card(3, 0), card(5, 1), card(5, 1)]
+    # test_hand.move = [card(1, 1), card(1, 1), card(1, 1), card(6, 1), card(7, 1), card(8, 1), card(1, 2), card(2, 2),card(3, 2), card(3, 0), card(3, 0), card(4, 1), card(5, 1)]
     test_hand.initiate()
 
     easy_player = player(0, 0, 1, 25000, 1)
     easy_player.hand = test_hand
     test_game = round(0, 0, [a, b, c, d])
     easy_game = round(0, 0, [easy_player, easy_player, easy_player, easy_player])
-    #easy_game.around(0,card(6,1))
-    #test_game.initialize()
+    # easy_game.around(0,card(6,1))
+    # test_game.initialize()
     # test_game.around(0,card(1,1))
     test_hand.print_all()
     print(test_hand.wait())
-
-#demo_inter()
+# demo_inter()
