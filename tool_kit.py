@@ -16,6 +16,49 @@ def ranking(unrank):
         i += 1
     return unrank
 
+
+'''
+class IA_reserve():
+    # 分析给定的14张牌中有多少幺九牌
+
+
+    # IA分析
+    def ia(self, num):
+        drawer = pile("temp")
+        drawer.ini()
+        i = 0
+        result = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        while i < num:
+            if i % (num / 50) == 0:
+                print("|", end="")
+            drawer.shuffle()
+            result[orphan_count()] += 1
+            if orphan_count() == 13:
+                print("在第%d次模拟时玩家天听/天胡国士无双十三面" % (i + 1))
+                for item in drawer.total[0:14]:
+                    print(item, end=" ")
+            i += 1
+        print()
+        return result
+
+    def second(self, num):
+        drawer = pile("temp")
+        drawer.ini()
+        i = 0
+        result = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        while i < num:
+            if i % (num / 50) == 0:
+                print("|", end="")
+            drawer.shuffle()
+            j = 0
+            while (j < 14):
+                if self.orphan_count() >= j:
+                    result[j] += 1
+                j += 1
+            i += 1
+        print()
+        return result
+'''
 def orphan_count(given):
     cnt = 0
     overlap = []
