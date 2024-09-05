@@ -16,6 +16,7 @@ names = {
 names_reversed = {value: key for key, value in names.items()}
 
 
+
 # 游戏进行！
 class player(object):
     winds = ['東', '南', '西', '北']
