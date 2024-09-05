@@ -1,4 +1,7 @@
 from itertools import combinations
+ref_table = {}
+
+
 def ranking(unrank):
     if len(unrank) == 1 or len(unrank) == 0:
         return unrank
@@ -84,13 +87,26 @@ def rank_card(unrank):
                 break
         i += 1
     return unrank
-
+def clean_handlike(handlike):
+    temp = []
+    j = 0
+    while (j < 10):
+        sub = []
+        for unit in handlike:
+            if unit.suit == j:
+                sub.append(unit)
+        if len(sub) != 0:
+            for thing in rank_card(sub):
+                temp.append(thing)
+        j += 1
+    return temp
 
 # 返回二维数组，包含所有组合
 def get_combinations(input_list, x):
     if x > len(input_list):
         return []
-
+    if not input_list:
+        return []
     result = list(combinations(input_list, x))
     return result
 
@@ -107,3 +123,10 @@ def have_same(two):
             return True
         i += 1
     return False
+
+def kind_into_score(kind):
+    #kind是一个set，包含了所有番种
+    temp = 0
+    for i in kind:
+        temp += ref_table[i]
+    return temp

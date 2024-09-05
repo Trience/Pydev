@@ -27,6 +27,7 @@ class player(object):
         self.score = score
         self.ranking = ranking
         self.hand = hand(wind)
+        self.gangnum = 0 #杠过几次
         self.pure = True  # 被别人碰过吗
         self.zhen = [] #振听
         self.reach = False #是否立直
@@ -48,7 +49,7 @@ class player(object):
         print('现在余{}, {}号玩家出牌'.format(round, self.name))
         self.hand.print_all()
         self.hand.clean()
-        if
+
         while True:
             ans = input('出牌: ')
             try:
@@ -105,7 +106,7 @@ class player(object):
             self.hand.shown.append(temp)
             self.hand.move.pop(i)
             self.hand.move.pop(j - 1)
-            self.play(round)
+            return self.play(round)
 
         else:
             print("不吃")
@@ -125,7 +126,7 @@ class player(object):
             self.hand.shown.append(temp)
             self.hand.move.pop(i)
             self.hand.move.pop(j - 1)
-            self.play(round)
+            return self.play(round)
         else:
             print("不碰")
         return None
@@ -149,7 +150,8 @@ class player(object):
             self.hand.move.pop(i)
             self.hand.move.pop(i)
             self.hand.move.append(add)
-            self.play(round)
+            self.gangnum += 1
+            return self.play(round)
         else:
             print("不碰")
         return None
@@ -220,6 +222,14 @@ class round(object):
                     self.draw.total.pop(-1)
                     self.players[(num + 3) % 4].pure = False
                     self.draw.show_dora(1)
+                    if self.gang >= 4:
+                        #是否是一个人杠了四次，否则四杠散
+                        temp = 0
+                        for one in self.players:
+                            if one.gangnum != 0:
+                                temp += 1
+                        if temp > 1:
+                            return [-2, card(0,0)] #四杠散了
                     self.dora = self.draw.dora
                     self.doradown = self.draw.doradown
                     respond = ans
@@ -252,68 +262,3 @@ class round(object):
 
 
 
-def demo():
-    mypile = pile()
-    testant = hand(0)
-    # 初始化和洗牌
-    mypile.ini()
-    # print(mypile.dora[0], mypile.doradown[0])
-
-    return 0
-
-    # testant.print_all()
-
-
-# demo()
-
-
-def test_wait():
-    test_hand = hand(0)
-
-    # test_hand.move = [card(1, 1), card(1, 1), card(1, 1), card(6, 1), card(7, 1), card(8, 1), card(1, 2), card(2, 2),card(3, 2), card(3, 0), card(3, 0), card(4, 1), card(5, 1)]
-
-    test_hand.move = [card(1, 1), card(1, 1), card(1, 1), card(3, 1), card(2, 1), card(4, 1), card(5, 1), card(6, 1),
-                      card(7, 1), card(8, 1), card(9, 1), card(9, 1), card(9, 1)]
-    # test_hand.total = [card(1, 1), card(1, 1), card(6, 1), card(6, 1), card(8, 1), card(8, 1), card(2, 2), card(2, 2),
-    # card(3, 2), card(3, 0), card(3, 0), card(5, 1), card(5, 1)]
-    test_hand.initiate()
-
-    print(len(test_hand.move))
-    test_hand.print_all()
-    test_hand.possible_detect()
-    print(test_hand.possible)
-    print(test_hand.pair)
-    print("WAITING:", end=' ')
-    wl = test_hand.wait()
-    print(wl)
-
-
-# start_time = time.time()
-test_wait()
-
-
-# end_time = time.time()
-# print(f"运行时间: {end_time - start_time} 秒")
-
-def demo_inter():
-    a = player(0, 0, 1, 25000, 1)
-    b = player(1, 1, 0, 25000, 2)
-    c = player(2, 2, 0, 25000, 3)
-    d = player(3, 3, 0, 25000, 4)
-
-    test_hand = hand(0)
-    # test_hand.total = [card(1, 1), card(1, 1), card(6, 1), card(6, 1), card(8, 1), card(8, 1), card(2, 2), card(2, 2),
-    # card(3, 2), card(3, 0), card(3, 0), card(5, 1), card(5, 1)]
-    # test_hand.move = [card(1, 1), card(1, 1), card(1, 1), card(6, 1), card(7, 1), card(8, 1), card(1, 2), card(2, 2),card(3, 2), card(3, 0), card(3, 0), card(4, 1), card(5, 1)]
-    test_hand.initiate()
-
-    easy_player = player(0, 0, 1, 25000, 1)
-    easy_player.hand = test_hand
-    test_game = round(0, 0, [a, b, c, d])
-    easy_game = round(0, 0, [easy_player, easy_player, easy_player, easy_player])
-    # easy_game.around(0,card(6,1))
-    # test_game.initialize()
-    # test_game.around(0,card(1,1))
-    test_hand.print_all()
-    print(test_hand.wait())
-# demo_inter()

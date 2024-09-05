@@ -1,5 +1,5 @@
 import random
-from tool_kit import rank_card, get_combinations, have_same, orphan_count
+from tool_kit import *
 names = {
     0: 'm',
     1: 'p',
@@ -129,6 +129,7 @@ class pile():
             print("翻开了一张新宝牌！")
             self.dora.append(self.dora_indicator(2 * self.gang))
             self.doradown.append(self.dora_indicator(2 * self.gang + 1))
+            self.gang += 1
         print("当前回合宝牌为：", end=" ")
         for dr in self.dora:
             print(dr, end=" ")
@@ -149,6 +150,7 @@ class hand():
         self.inter = {}
         self.yi = []
         self.waiting = None #听牌
+        self.reach = False #立直
 
     def interaction(self):
 
@@ -225,19 +227,9 @@ class hand():
     # 理牌
 
     def clean(self):
-        temp = []
-        j = 0
-        while (j < 10):
-            sub = []
-            for unit in self.move:
-                if unit.suit == j:
-                    sub.append(unit)
-            if len(sub) != 0:
-                for thing in rank_card(sub):
-                    temp.append(thing)
-            j += 1
+        self.move = clean_handlike(self.move)
         self.possible_detect()
-        self.move = temp
+
         self.inter = self.interaction()
         self.waiting = self.wait()
 
@@ -272,7 +264,44 @@ class hand():
             i += 1
         if (self.move[i].rank == self.move[i + 1].rank and self.move[i].suit == self.move[i + 1].suit):
             self.pair.append([i, i + 1, "double"])
+    def kind(self, total, stat):
+        #根据total来算番
+        return
 
+    def calc(self, new, stat):
+        #stat是表示特殊和牌的一个整数
+        temp_hand = hand(self.wind)
+        temp_hand.move = clean_handlike(temp_hand.move.append(new)) #生成一个14张牌的可能和牌结构
+        temp_hand.shown = self.shown
+        temp_hand.possible_detect()
+        for chosen in temp_hand.pair:
+            temp = temp_hand.possible.copy()
+            j = 0
+            for i in range(len(temp)):
+                if chosen[0] in temp[i] or chosen[1] in temp[i]:
+                    temp.pop(i - j)
+                    j += 1
+            if len(temp_hand.shown) == 4:
+                formed = temp_hand.shown + temp_hand.pair
+                kinded = temp_hand.kind(formed, stat)
+            else:
+                temp_comb = get_combinations(temp, 4 - len(temp_hand.shown))
+                for choice in temp_comb:
+                    if have_same(choice) == False:
+                        formed = temp_hand.shown
+                        for unit in temp_hand.possible:
+                            temp = unit.copy()
+                            for k in range(len(temp)):
+                                temp[k] = temp_hand.move[unit[k]].copy()
+                            formed.append(temp)
+                        kinded = temp_hand.kind(formed, stat)
+                        #算上手牌和副露
+
+        #把牌理好准备结算
+        final_list = self.move.copy()
+        for unit in temp_hand.shown:
+            final_list.append(unit[:-1])
+        return [kinded, final_list]
     def wait(self):
 
         waiting = []
@@ -283,7 +312,8 @@ class hand():
             for kard in self.move:
                 if kard in ref:
                     ref.remove(kard)
-            waiting.append(ref[0])
+            #Markpoint: 需要修改
+            waiting[ref[0]] = []
 
         # 七对子
         if (len(self.shown) == 0 and len(self.pair) == 6):
@@ -310,7 +340,7 @@ class hand():
                         temp.append(pu)
                     j = 0
                     for i in range(len(temp)):
-                        if chosen[0] in temp[i - j]:
+                        if chosen[0] in temp[i - j] or chosen[1] in temp[i - j]:
                             temp.pop(i - j)
                             j += 1
                     # print(temp)
@@ -336,18 +366,21 @@ class hand():
                             # 双碰听牌
                             if right[0] == right[1]:
                                 waiting.append(right[0])
-                                waiting.append(self.move[chosen[0]])
+                                waiting.append((self.move[chosen[0]], 0))
                                 if (chosen in self.pair):
                                     self.pair.remove(chosen)
                             # 两连的平和
                             if right[0].suit == right[1].suit and right[0].rank + 1 == right[1].rank:
-                                if (right[0].rank != 1):
-                                    waiting.append(card(right[0].rank - 1, right[0].suit))
-                                if (right[1].rank != 9):
-                                    waiting.append(card(right[1].rank + 1, right[1].suit))
+                                if (right[0].rank != 1) and (right[1].rank != 9):
+                                    waiting.append((card(right[0].rank - 1, right[0].suit), 1))
+                                    waiting.append((card(right[1].rank + 1, right[1].suit), 1))
+                                elif (right[0].rank != 1):
+                                    waiting.append((card(right[0].rank - 1, right[0].suit), 0))
+                                elif (right[1].rank != 9):
+                                    waiting.append((card(right[1].rank + 1, right[1].suit), 0))
                             # 坎张听牌
                             if right[0].suit == right[1].suit and right[0].rank + 2 == right[1].rank:
-                                waiting.append(card(right[0].rank + 1, right[1].suit))
+                                waiting.append((card(right[0].rank + 1, right[1].suit), 0))
                 # print("AHHH:",waiting)
             # 单调，或1234等牌型
             if (len(self.pair) == 0 or status == 1):
@@ -370,25 +403,26 @@ class hand():
                             # print(lala)
                             for i in range(len(self.move)):
                                 if i not in lala:
-                                    waiting.append(self.move[i])
+                                    waiting.append((self.move[i], 0))
 
                 else:
                     print("你也别急")
         else:
             print("别急")
-        final_waiting = []
+        final_waiting = list(set(waiting))
         # 去除重复项目
-        for kard in waiting:
-            status = 0
-            for k in final_waiting:
-                if kard == k:
-                    status = 1
-            if status == 0:
-                final_waiting.append(kard)
-        final_waiting = rank_card(final_waiting)
+        #final_waiting = rank_card(final_waiting)
+        '''
+        dict_waiting = {}
+        for i in range(len(final_waiting)):
+            temp_comb = self.calc(final_waiting[i][0], final_waiting[i][1])
+            if temp_comb[0]:
+                dict_waiting[final_waiting[i]] = temp_comb
+            else:
+                print("{}无役".format(final_waiting[i]))
+        '''
         return final_waiting
-    #得出得分最高的牌型，算分不在这里
-    def win(self, new, wind):
+
 
 
 
