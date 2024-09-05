@@ -1,4 +1,5 @@
 from itertools import combinations
+
 ref_table = {}
 
 
@@ -62,6 +63,8 @@ class IA_reserve():
         print()
         return result
 '''
+
+
 def orphan_count(given):
     cnt = 0
     overlap = []
@@ -71,6 +74,8 @@ def orphan_count(given):
                 overlap.append([item.rank, item.suit])
                 cnt += 1
     return cnt
+
+
 def rank_card(unrank):
     if len(unrank) == 1 or len(unrank) == 0:
         return unrank
@@ -87,6 +92,8 @@ def rank_card(unrank):
                 break
         i += 1
     return unrank
+
+
 def clean_handlike(handlike):
     temp = []
     j = 0
@@ -101,6 +108,7 @@ def clean_handlike(handlike):
         j += 1
     return temp
 
+
 # 返回二维数组，包含所有组合
 def get_combinations(input_list, x):
     if x > len(input_list):
@@ -114,8 +122,8 @@ def get_combinations(input_list, x):
 def have_same(two):
     temp = []
     for one in two:
-        #for j in one:
-            #temp.append(j)
+        # for j in one:
+        # temp.append(j)
         temp += one[:3]
     i = 0
     while (i < len(temp) - 1):
@@ -124,8 +132,9 @@ def have_same(two):
         i += 1
     return False
 
+
 def kind_into_score(kind):
-    #kind是一个set，包含了所有番种
+    # kind是一个set，包含了所有番种
     temp = 0
     for i in kind:
         temp += ref_table[i]

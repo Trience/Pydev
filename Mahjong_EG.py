@@ -16,7 +16,6 @@ names = {
 names_reversed = {value: key for key, value in names.items()}
 
 
-
 # 游戏进行！
 class player(object):
     winds = ['東', '南', '西', '北']
@@ -28,10 +27,10 @@ class player(object):
         self.score = score
         self.ranking = ranking
         self.hand = hand(wind)
-        self.gangnum = 0 #杠过几次
+        self.gangnum = 0  # 杠过几次
         self.pure = True  # 被别人碰过吗
-        self.zhen = [] #振听
-        self.reach = False #是否立直
+        self.zhen = []  # 振听
+        self.reach = False  # 是否立直
 
     def copy(self):
         return player(self.name, self.wind, self.button, self.score, self.ranking)
@@ -68,7 +67,7 @@ class player(object):
                 print('这不是一个有效输入')
 
     def ron(self, new):
-        #返回的是一整个player
+        # 返回的是一整个player
         self.hand.print_all()
         ans = input('{}号玩家，你是否要胡{}?(Y/N)'.format(self.name, new))
         if ans in ['Y', 'y']:
@@ -77,8 +76,6 @@ class player(object):
             return self
         else:
             return None
-
-
 
     def chi(self, new, round):
         self.hand.print_all()
@@ -196,7 +193,7 @@ class round(object):
 
         respond = None  # 是否有玩家应答
         who = num  # 谁出了牌
-        win = [] #一个包含所有胡牌的组
+        win = []  # 一个包含所有胡牌的组
         # 询问碰，杠
         for one in self.players:
             if one.name == (num + 3) % 4:
@@ -204,9 +201,9 @@ class round(object):
             if last in one.wait:
                 if last not in one.zhen:
                     win.append(one.ron())
-                    #查看是否有一炮多响
+                    # 查看是否有一炮多响
             if win:
-                return [-1, card(0,0)]
+                return [-1, card(0, 0)]
 
             pon = list(one.hand.inter['p'].keys())
             gang = list(one.hand.inter['g'].keys())
@@ -224,13 +221,13 @@ class round(object):
                     self.players[(num + 3) % 4].pure = False
                     self.draw.show_dora(1)
                     if self.gang >= 4:
-                        #是否是一个人杠了四次，否则四杠散
+                        # 是否是一个人杠了四次，否则四杠散
                         temp = 0
                         for one in self.players:
                             if one.gangnum != 0:
                                 temp += 1
                         if temp > 1:
-                            return [-2, card(0,0)] #四杠散了
+                            return [-2, card(0, 0)]  # 四杠散了
                     self.dora = self.draw.dora
                     self.doradown = self.draw.doradown
                     respond = ans
@@ -258,8 +255,3 @@ class round(object):
         self.players[self.but_pos].play(self.history)
 
         return 0
-
-
-
-
-

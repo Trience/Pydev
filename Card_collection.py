@@ -1,5 +1,6 @@
 import random
 from tool_kit import *
+
 names = {
     0: 'm',
     1: 'p',
@@ -13,6 +14,8 @@ names = {
     9: '中',
 }
 names_reversed = {value: key for key, value in names.items()}
+
+
 class card(object):
     def __init__(self, rank, suit, aka=False):
         self.suit = suit
@@ -149,8 +152,8 @@ class hand():
         self.gang = 0
         self.inter = {}
         self.yi = []
-        self.waiting = None #听牌
-        self.reach = False #立直
+        self.waiting = None  # 听牌
+        self.reach = False  # 立直
 
     def interaction(self):
 
@@ -264,14 +267,15 @@ class hand():
             i += 1
         if (self.move[i].rank == self.move[i + 1].rank and self.move[i].suit == self.move[i + 1].suit):
             self.pair.append([i, i + 1, "double"])
+
     def kind(self, total, stat):
-        #根据total来算番
+        # 根据total来算番
         return
 
     def calc(self, new, stat):
-        #stat是表示特殊和牌的一个整数
+        # stat是表示特殊和牌的一个整数
         temp_hand = hand(self.wind)
-        temp_hand.move = clean_handlike(temp_hand.move.append(new)) #生成一个14张牌的可能和牌结构
+        temp_hand.move = clean_handlike(temp_hand.move.append(new))  # 生成一个14张牌的可能和牌结构
         temp_hand.shown = self.shown
         temp_hand.possible_detect()
         for chosen in temp_hand.pair:
@@ -295,13 +299,14 @@ class hand():
                                 temp[k] = temp_hand.move[unit[k]].copy()
                             formed.append(temp)
                         kinded = temp_hand.kind(formed, stat)
-                        #算上手牌和副露
+                        # 算上手牌和副露
 
-        #把牌理好准备结算
+        # 把牌理好准备结算
         final_list = self.move.copy()
         for unit in temp_hand.shown:
             final_list.append(unit[:-1])
         return [kinded, final_list]
+
     def wait(self):
 
         waiting = []
@@ -312,7 +317,7 @@ class hand():
             for kard in self.move:
                 if kard in ref:
                     ref.remove(kard)
-            #Markpoint: 需要修改
+            # Markpoint: 需要修改
             waiting[ref[0]] = []
 
         # 七对子
@@ -411,7 +416,7 @@ class hand():
             print("别急")
         final_waiting = list(set(waiting))
         # 去除重复项目
-        #final_waiting = rank_card(final_waiting)
+        # final_waiting = rank_card(final_waiting)
         '''
         dict_waiting = {}
         for i in range(len(final_waiting)):
@@ -422,8 +427,6 @@ class hand():
                 print("{}无役".format(final_waiting[i]))
         '''
         return final_waiting
-
-
 
 
 # 牌河
