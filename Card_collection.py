@@ -263,21 +263,37 @@ class hand():
                 self.possible.append([i, i + 1, i + 2, "triple"])
             if (self.move[i].rank == self.move[i + 1].rank and self.move[i].suit == self.move[i + 1].suit):
                 self.pair.append([i, i + 1, "double"])
-
             i += 1
         if (self.move[i].rank == self.move[i + 1].rank and self.move[i].suit == self.move[i + 1].suit):
             self.pair.append([i, i + 1, "double"])
 
     def kind(self, total, stat):
         # 根据total来算番
-        return
+        result = []
+        sort = {'straight': 0, 'triple': 0}
+        for i in total:
+            if self.reach:
+                result.append(0)
+        return result
 
     def calc(self, new, stat):
         # stat是表示特殊和牌的一个整数
+        if stat == 2:
+            self.move.append(new)
+            self.possible_detect()
+            result = self.kind(self.pair, 2)
+            return [result, self.move]
+        if stat == 3:
+            self.move.append(new)
+            return [[-1], self.move]
+        if stat == 4:
+            self.move.append(new)
+            return [[-2], self.move]
         temp_hand = hand(self.wind)
         temp_hand.move = clean_handlike(temp_hand.move.append(new))  # 生成一个14张牌的可能和牌结构
         temp_hand.shown = self.shown
         temp_hand.possible_detect()
+        kinded = []
         for chosen in temp_hand.pair:
             temp = temp_hand.possible.copy()
             j = 0
@@ -287,25 +303,31 @@ class hand():
                     j += 1
             if len(temp_hand.shown) == 4:
                 formed = temp_hand.shown + temp_hand.pair
-                kinded = temp_hand.kind(formed, stat)
+                kinded = [temp_hand.kind(formed, stat)]
             else:
                 temp_comb = get_combinations(temp, 4 - len(temp_hand.shown))
                 for choice in temp_comb:
                     if have_same(choice) == False:
                         formed = temp_hand.shown
-                        for unit in temp_hand.possible:
+                        for unit in choice:
                             temp = unit.copy()
                             for k in range(len(temp)):
                                 temp[k] = temp_hand.move[unit[k]].copy()
                             formed.append(temp)
-                        kinded = temp_hand.kind(formed, stat)
+                        formed.append (chosen)
+                        kinded_temp = temp_hand.kind(formed, stat)
+                        kinded.append(kinded_temp)
                         # 算上手牌和副露
-
+        best = 0
+        result = None
+        for p in kinded:
+            if kind_into_score(p) > best:
+                result = p
         # 把牌理好准备结算
         final_list = self.move.copy()
         for unit in temp_hand.shown:
             final_list.append(unit[:-1])
-        return [kinded, final_list]
+        return [result, final_list]
 
     def wait(self):
 
@@ -318,7 +340,11 @@ class hand():
                 if kard in ref:
                     ref.remove(kard)
             # Markpoint: 需要修改
-            waiting[ref[0]] = []
+            waiting.append((ref[0], 3))
+        if (orphan_count(self.move) == 13 and len(self.pair) == 0):
+            for kard in self.move:
+                waiting.append((kard, 4))
+
 
         # 七对子
         if (len(self.shown) == 0 and len(self.pair) == 6):
@@ -330,7 +356,7 @@ class hand():
                     if e in f:
                         g = 1
                 if g == 0:
-                    waiting.append(self.move[e])
+                    waiting.append((self.move[e], 2))
         # 基本的和牌形状
         if len(self.possible) + len(self.shown) >= 3:
             status = 1
@@ -414,6 +440,11 @@ class hand():
                     print("你也别急")
         else:
             print("别急")
+        #九莲
+        if len(waiting) == 9:
+            for i in range(9):
+                waiting.append((waiting[0][0], 5))
+                waiting.pop(0)
         final_waiting = list(set(waiting))
         # 去除重复项目
         # final_waiting = rank_card(final_waiting)
@@ -422,7 +453,7 @@ class hand():
         for i in range(len(final_waiting)):
             temp_comb = self.calc(final_waiting[i][0], final_waiting[i][1])
             if temp_comb[0]:
-                dict_waiting[final_waiting[i]] = temp_comb
+                dict_waiting[final_waiting[i][0]] = temp_comb
             else:
                 print("{}无役".format(final_waiting[i]))
         '''
@@ -434,6 +465,12 @@ class river():
     def __init__(self):
         self.rivers = [[], [], [], []]
         self.repeat = [set(), set(), set(), set()]
-
+        self.all_count = {}
     def update(self, i, j):
+        #i是玩家编号，j是牌
         self.repeat[i].add(j)
+        if j in list(self.all_count.keys()):
+            self.all_count[j] += 1
+        else:
+            self.all_count[j] = 1
+

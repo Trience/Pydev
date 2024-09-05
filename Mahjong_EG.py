@@ -49,7 +49,8 @@ class player(object):
         print('现在余{}, {}号玩家出牌'.format(round, self.name))
         self.hand.print_all()
         self.hand.clean()
-
+        if self.hand.waiting and not self.hand.shown:
+            print("现在可以立直：")
         while True:
             ans = input('出牌: ')
             try:
@@ -61,6 +62,8 @@ class player(object):
                     if self.hand.move[i] == cardans:
                         self.hand.move.pop(i)
                         self.hand.clean()
+                        if self.hand.waiting:
+                            print("waiting:", self.hand.waiting)
                         return (cardans)
                 print("你目前未持有{}".format(cardans))
             except:
@@ -172,7 +175,8 @@ class round(object):
         self.history = len(self.draw.total) - 14  # 还剩多少牌
         self.dora = self.draw.dora
         self.doradown = self.draw.doradown
-
+        self.reach = [False, False, False, False] #谁立直了
+        self.ipa = [False, False, False, False] #一发计算
     def __str__(self):
         return ('東{}局，当前玩家:\n{}'.format(self.but_pos + 1, self.players))
 
@@ -203,7 +207,7 @@ class round(object):
                     win.append(one.ron())
                     # 查看是否有一炮多响
             if win:
-                return [-1, card(0, 0)]
+                return [-1, win]
 
             pon = list(one.hand.inter['p'].keys())
             gang = list(one.hand.inter['g'].keys())
@@ -247,6 +251,11 @@ class round(object):
         self.river.update((num + 3) % 4, last)
         self.players[(num + 3) % 4].zhen = list(self.river.repeat[(num + 3) % 4])
         print("東{}局".format(self.but_pos + 1), end=', ')
+        if self.players[num].hand.waiting:
+            if self.draw.total[0] in list(self.players[num].hand.waiting.keys()):
+                ans = self.players[num].zimo(self.draw.total[0])
+                if ans:
+                    return [-1, [ans]]
         self.players[num].hand.move.append(self.draw.total.pop(0))
         return ([num, self.players[num].play(self.history)])
 
