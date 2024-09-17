@@ -285,12 +285,18 @@ class hand():
                     else:
                         break
                 j = 0
+                if i + k + j + 2 >= len(self.move):
+                    break
                 while self.move[i] + 3 > self.move[i+k+j+2]:
+
                     if (self.move[i].rank == self.move[i + k + 1].rank - 1 == self.move[i + k + j + 2].rank - 2 and
                             self.move[i].suit ==
                             self.move[i + k + 1].suit == self.move[i + k + j + 2].suit):
                         self.possible.append([i, i + k + 1, i + k + j + 2, "straight"])
-                    j += 1
+                    if i+k+j+2 < len(self.move) - 1:
+                        j += 1
+                    else:
+                        break
                 k += 1
 
             if (self.move[i].rank == self.move[i + 1].rank == self.move[i + 2].rank and self.move[i].suit == self.move[
@@ -326,8 +332,8 @@ class hand():
             color.add(i.suit)
         if (0 in color) + (1 in color) + (2 in color) <= 1:
             #字一色
-            if (0 in color) + (1 in color) + (2 in color) == 1:
-                result.append(-2)
+            if (0 in color) + (1 in color) + (2 in color) == 0:
+                result.append(-3)
             #清一色
             elif len(color) ==1:
                 if self.close:
@@ -397,13 +403,9 @@ class hand():
                     if sort['straight'][k][0] == sort['straight'][k + 1][0]:
                         result.append(8)
             #二杯口
-            if len(sort['straight']) > 2:
-                for k in range(len(sort['straight']) - 2):
-                    if sort['straight'][k][0] == sort['straight'][k + 1][0] == sort['straight'][k + 2][0]:
-                        result.append(31)
-            if len(sort['triple']) >= 3:
-                if len(sort['triple']) == 4:
-                    result.append()
+            if len(sort['straight']) > 3:
+                if sort['straight'][0][0] == sort['straight'][1][0] and sort['straight'][2][0] == sort['straight'][3][0]:
+                    result.append(31)
         #四暗刻
             if len(sort['triple'])>=3:
                 result.append(14)
@@ -460,6 +462,7 @@ class hand():
             if not sort['triple']:
                 if stat == 1:
                     fu = 30 #副露平和固定30符
+        result = list(set(result))
         return [result, fu]
 
     def calc(self, new, stat):
@@ -603,7 +606,7 @@ class hand():
                             # print("LEFT:", right, len(right))
                             # 双碰听牌
                             if right[0] == right[1]:
-                                waiting.append(right[0])
+                                #waiting.append((right[0]))
                                 waiting.append((self.move[chosen[0]], 6))
                                 if (chosen in self.pair):
                                     self.pair.remove(chosen)
@@ -648,11 +651,12 @@ class hand():
         else:
             print("别急")
         #九莲
-        if len(waiting) == 9:
-            for i in range(9):
-                waiting.append((waiting[0][0], 5))
-                waiting.pop(0)
         final_waiting = list(set(waiting))
+        if len(final_waiting) == 9:
+            for i in range(9):
+                final_waiting.append((final_waiting[0][0], 5))
+                final_waiting.pop(0)
+
         # 去除重复项目
         # final_waiting = rank_card(final_waiting)
         dict_waiting = {}
