@@ -22,9 +22,9 @@ def demo():
 def test_wait():
     test_hand = hand(0)
 
-    #test_hand.move = [card(2, 0), card(2, 0), card(3, 0), card(3, 0), card(4, 0), card(4, 0), card(2, 2), card(2, 2),card(2, 0), card(3, 0), card(4, 0), card(4, 1), card(5, 1)]
-    test_hand.move = [card(2, 0), card(2, 0), card(3, 0), card(3, 0), card(4, 0), card(4, 0), card(2, 2), card(2, 2),
-                      card(0, 3), card(0, 3), card(0, 3), card(4, 1), card(5, 1)]
+    test_hand.move = [card(2, 0), card(2, 0), card(3, 0), card(3, 0), card(4, 0), card(4, 0), card(2, 2), card(2, 2),card(2, 0), card(3, 0), card(4, 0), card(4, 1), card(5, 1)]
+    #test_hand.move = [card(2, 0), card(2, 0), card(3, 0), card(3, 0), card(4, 0), card(4, 0), card(2, 2), card(2, 2),
+                      #card(0, 3), card(0, 3), card(0, 3), card(4, 1), card(5, 1)]
     #test_hand.move = [card(1, 1), card(1, 1), card(1, 1), card(3, 1), card(2, 1), card(4, 1), card(5, 1), card(6, 1), card(7, 1), card(8, 1), card(9, 1), card(9, 1), card(9, 1)]
     # test_hand.total = [card(1, 1), card(1, 1), card(6, 1), card(6, 1), card(8, 1), card(8, 1), card(2, 2), card(2, 2),
     # card(3, 2), card(3, 0), card(3, 0), card(5, 1), card(5, 1)]

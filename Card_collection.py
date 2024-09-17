@@ -505,22 +505,21 @@ class hand():
                 formed = temp_hand.shown + temp_hand.pair
                 kinded = [self.kind(formed, stat)]
             else:
-                temp_comb = get_combinations(temp, 4 - len(temp_hand.shown))
+                temp_comb = better_combinations(temp, 4 - len(temp_hand.shown))
                 for choice in temp_comb:
-                    if have_same(choice) == False:
-                        formed = temp_hand.shown.copy()
-                        for unit in choice:
-                            temp = unit.copy()
-                            for k in range(len(temp) - 1):
-                                temp[k] = temp_hand.move[unit[k]].copy()
-                            formed.append(temp)
-                        temp = [None, None, 'pair'] #把选中的雀头对子提炼出来
-                        temp[0] = temp_hand.move[chosen[0]]
-                        temp[1] = temp_hand.move[chosen[1]]
-                        formed.append (temp)
-                        kinded_temp = self.kind(formed, stat)
-                        kinded.append(kinded_temp)
-                        # 算上手牌和副露
+                    formed = temp_hand.shown.copy()
+                    for unit in choice:
+                        temp = unit.copy()
+                        for k in range(len(temp) - 1):
+                            temp[k] = temp_hand.move[unit[k]].copy()
+                        formed.append(temp)
+                    temp = [None, None, 'pair'] #把选中的雀头对子提炼出来
+                    temp[0] = temp_hand.move[chosen[0]]
+                    temp[1] = temp_hand.move[chosen[1]]
+                    formed.append (temp)
+                    kinded_temp = self.kind(formed, stat)
+                    kinded.append(kinded_temp)
+                    # 算上手牌和副露
         best = 0
         result = None
         for p in kinded:
@@ -584,42 +583,41 @@ class hand():
                             j += 1
                     # print(temp)
                     # print("COMBINATION:",get_combinations(temp, 3 - len(self.shown)))
-                    total_comb = get_combinations(temp, 3 - len(self.shown))
+                    total_comb = better_combinations(temp, 3 - len(self.shown))
                     for choice in total_comb:
 
-                        # print("choice:", choice)
-                        if have_same(choice) == False:
-                            # print(choice)
-                            lala = []
-                            for one in choice:
-                                lala += one[:3]
-                            # print(lala)
-                            left = self.move
-                            right = []  # 正在听牌中的两张牌
-                            # print("LEFT:", left)
-                            n = len(left)
-                            for i in range(0, n):
-                                if i not in lala and i != chosen[0] and i != chosen[1]:
-                                    right.append(left[i])
-                            # print("LEFT:", right, len(right))
-                            # 双碰听牌
-                            if right[0] == right[1]:
-                                #waiting.append((right[0]))
-                                waiting.append((self.move[chosen[0]], 6))
-                                if (chosen in self.pair):
-                                    self.pair.remove(chosen)
-                            # 两连的平和
-                            if right[0].suit == right[1].suit and right[0].rank + 1 == right[1].rank:
-                                if (right[0].rank != 1) and (right[1].rank != 9):
-                                    waiting.append((card(right[0].rank - 1, right[0].suit), 1))
-                                    waiting.append((card(right[1].rank + 1, right[1].suit), 1))
-                                elif (right[0].rank != 1):
-                                    waiting.append((card(right[0].rank - 1, right[0].suit), 0))
-                                elif (right[1].rank != 9):
-                                    waiting.append((card(right[1].rank + 1, right[1].suit), 0))
-                            # 坎张听牌
-                            if right[0].suit == right[1].suit and right[0].rank + 2 == right[1].rank:
-                                waiting.append((card(right[0].rank + 1, right[1].suit), 0))
+                    # print("choice:", choice)
+                        # print(choice)
+                        lala = []
+                        for one in choice:
+                            lala += one[:3]
+                        # print(lala)
+                        left = self.move
+                        right = []  # 正在听牌中的两张牌
+                        # print("LEFT:", left)
+                        n = len(left)
+                        for i in range(0, n):
+                            if i not in lala and i != chosen[0] and i != chosen[1]:
+                                right.append(left[i])
+                        # print("LEFT:", right, len(right))
+                        # 双碰听牌
+                        if right[0] == right[1]:
+                            #waiting.append((right[0]))
+                            waiting.append((self.move[chosen[0]], 6))
+                            if (chosen in self.pair):
+                                self.pair.remove(chosen)
+                        # 两连的平和
+                        if right[0].suit == right[1].suit and right[0].rank + 1 == right[1].rank:
+                            if (right[0].rank != 1) and (right[1].rank != 9):
+                                waiting.append((card(right[0].rank - 1, right[0].suit), 1))
+                                waiting.append((card(right[1].rank + 1, right[1].suit), 1))
+                            elif (right[0].rank != 1):
+                                waiting.append((card(right[0].rank - 1, right[0].suit), 0))
+                            elif (right[1].rank != 9):
+                                waiting.append((card(right[1].rank + 1, right[1].suit), 0))
+                        # 坎张听牌
+                        if right[0].suit == right[1].suit and right[0].rank + 2 == right[1].rank:
+                            waiting.append((card(right[0].rank + 1, right[1].suit), 0))
                 # print("AHHH:",waiting)
             # 单调，或1234等牌型
             if (len(self.pair) == 0 or status == 1):
@@ -630,19 +628,19 @@ class hand():
                         temp.append(pu)
                     # print(len(temp))
                     # print(get_combinations(temp, 4 - len(self.shown)))
-                    for choice in get_combinations(temp, 4 - len(self.shown)):
-                        if have_same(choice) == False:
-                            lala = []
-                            for one in choice:
-                                for j in one:
-                                    lala.append(j)
-                            for item in lala:
-                                if item == 'straight' or item == 'triple' or item == 'pair':
-                                    lala.remove(item)
-                            # print(lala)
-                            for i in range(len(self.move)):
-                                if i not in lala:
-                                    waiting.append((self.move[i], 0))
+                    temp_comb = better_combinations(temp, 4 - len(self.shown))
+                    for choice in temp_comb:
+                        lala = []
+                        for one in choice:
+                            for j in one:
+                                lala.append(j)
+                        for item in lala:
+                            if item == 'straight' or item == 'triple' or item == 'pair':
+                                lala.remove(item)
+                        # print(lala)
+                        for i in range(len(self.move)):
+                            if i not in lala:
+                                waiting.append((self.move[i], 0))
 
                 else:
                     print("你也别急")
