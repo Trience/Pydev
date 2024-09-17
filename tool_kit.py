@@ -160,6 +160,32 @@ def get_combinations(input_list, x):
         return []
     result = list(combinations(input_list, x))
     return result
+def better_combinations(input_list, x):
+    result = []
+    def bc(input_list, x, total, new_list):
+        if x == 0:
+            result.append(new_list.copy())
+            return
+        for temp in range(len(input_list)):
+            stat = 0
+            for i in input_list[temp][:-1]:
+                if i in total:
+                    stat = 1 #有重合
+                    break
+            if stat == 0:
+                new_list.append(input_list[temp])
+                if temp == len(input_list):
+                    return
+                bc(input_list[temp+1:], x - 1, total + new_list[-1][:-1], new_list)
+                new_list.pop(-1)
+            else:
+                continue
+    bc(input_list, x, [], [])
+    return result
+
+
+def test_for_bc():
+    return better_combinations([[1,2,3,-1],[2,3,4,0],[5,6,7,0],[6,7,8,0],[8,9,10,0],[1,4,3,0]],3)
 
 
 def have_same(two):

@@ -576,9 +576,7 @@ class hand():
                         status = 0
             if len(self.pair) > 0:
                 for chosen in self.pair:
-                    temp = []
-                    for pu in self.possible:
-                        temp.append(pu)
+                    temp = self.possible.copy()
                     j = 0
                     for i in range(len(temp)):
                         if chosen[0] in temp[i - j] or chosen[1] in temp[i - j]:
