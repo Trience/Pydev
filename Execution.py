@@ -2,6 +2,7 @@ from Card_collection import *
 from tool_kit import *
 from Mahjong_EG import *
 
+start_time = time.time()
 
 def demo():
     mypile = pile()
@@ -21,31 +22,40 @@ def demo():
 def test_wait():
     test_hand = hand(0)
 
-    test_hand.move = [card(1, 0), card(2, 0), card(4, 0), card(6, 1), card(7, 1), card(8, 1), card(1, 2), card(2, 2),card(3, 2), card(9, 1), card(3, 0), card(4, 1), card(5, 1)]
+    test_hand.move = [card(2, 0), card(2, 0), card(3, 0), card(3, 0), card(4, 0), card(4, 0), card(2, 2), card(2, 2),card(2, 0), card(3, 0), card(4, 0), card(4, 1), card(5, 1)]
 
     # test_hand.move = [card(1, 1), card(1, 1), card(1, 1), card(3, 1), card(2, 1), card(4, 1), card(5, 1), card(6, 1),
     # card(7, 1), card(8, 1), card(9, 1), card(9, 1), card(9, 1)]
     # test_hand.total = [card(1, 1), card(1, 1), card(6, 1), card(6, 1), card(8, 1), card(8, 1), card(2, 2), card(2, 2),
     # card(3, 2), card(3, 0), card(3, 0), card(5, 1), card(5, 1)]
+
     test_hand.initiate()
 
     print(len(test_hand.move))
-    test_hand.print_all()
-    test_hand.possible_detect()
     print(test_hand.possible)
-    print(test_hand.pair)
-    print("WAITING:", end=' ')
-    wl = test_hand.wait()
-    print(wl)
-    print(orphan_count(test_hand.move))
+    test_hand.print_all()
+    test_hand.clean()
+    a = player(0,0,1,25000,0)
+    a.hand = test_hand
+    b = player(1,1,0,25000,0)
+    c = player(1, 1, 0, 25000, 0)
+    d = player(1, 1, 0, 25000, 0)
+    print(a.hand.waiting)
 
 
-# start_time = time.time()
+
 test_wait()
 
+def easy():
+    test_hand = hand(0)
 
-# end_time = time.time()
-# print(f"运行时间: {end_time - start_time} 秒")
+    test_hand.move = [card(2, 0), card(2, 0), card(3, 0), card(3, 0), card(4, 0), card(4, 0), card(2, 2), card(2, 2),
+                      card(0, 3), card(0, 3), card(0, 3), card(4, 1), card(5, 1)]
+    print(card(2, 0)< card(2, 0))
+
+end_time = time.time()
+#easy()
+print(f"运行时间: {end_time - start_time} 秒")
 
 def demo_inter():
     a = player(0, 0, 1, 25000, 1)

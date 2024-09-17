@@ -1,6 +1,6 @@
 import random
 from tool_kit import *
-
+from itertools import combinations
 names = {
     0: 'm',
     1: 'p',
@@ -63,6 +63,26 @@ class card(object):
 
     def __add__(self, other):
         return card(self.rank + other, self.suit)
+
+    def __lt__(self, other):
+        if self.suit < other.suit:
+            return True
+        elif self.suit > other.suit:
+            return False
+        elif self.rank < other.rank:
+            return True
+        else:
+            return False
+
+    def __gt__(self, other):
+        if self.suit > other.suit:
+            return True
+        elif self.suit < other.suit:
+            return False
+        elif self.rank > other.rank:
+            return True
+        else:
+            return False
 
 
 # 抽卡叠
@@ -152,6 +172,7 @@ class hand():
         self.gang = 0
         self.inter = {}
         self.yi = []
+        self.close = True # 门清
         self.waiting = None  # 听牌
         self.reach = False  # 立直
 
@@ -255,79 +276,260 @@ class hand():
         # 已经成形的所有组合
         while i < len(self.move) - 2:
             # print(type(self.move[i]))
-            if (self.move[i].rank == self.move[i + 1].rank - 1 == self.move[i + 2].rank - 2 and self.move[i].suit ==
-                    self.move[i + 1].suit == self.move[i + 2].suit):
-                self.possible.append([i, i + 1, i + 2, "straight"])
+            k = 0
+            while self.move[i] + 2 > self.move[i + 1 + k]:
+                if self.move[i] == self.move[i + 1 + k]:
+                    if i + 1 + k < len(self.move) - 1:
+                        k += 1
+                        continue
+                    else:
+                        break
+                j = 0
+                while self.move[i] + 3 > self.move[i+k+j+2]:
+                    if (self.move[i].rank == self.move[i + k + 1].rank - 1 == self.move[i + k + j + 2].rank - 2 and
+                            self.move[i].suit ==
+                            self.move[i + k + 1].suit == self.move[i + k + j + 2].suit):
+                        self.possible.append([i, i + k + 1, i + k + j + 2, "straight"])
+                    j += 1
+                k += 1
+
             if (self.move[i].rank == self.move[i + 1].rank == self.move[i + 2].rank and self.move[i].suit == self.move[
                 i + 1].suit == self.move[i + 2].suit):
                 self.possible.append([i, i + 1, i + 2, "triple"])
             if (self.move[i].rank == self.move[i + 1].rank and self.move[i].suit == self.move[i + 1].suit):
-                self.pair.append([i, i + 1, "double"])
+                self.pair.append([i, i + 1, "pair"])
             i += 1
         if (self.move[i].rank == self.move[i + 1].rank and self.move[i].suit == self.move[i + 1].suit):
-            self.pair.append([i, i + 1, "double"])
+            self.pair.append([i, i + 1, "pair"])
+
 
     def kind(self, total, stat):
         # 根据total来算番
         result = []
-        sort = {'straight': 0, 'triple': 0}
+        fu = 20
+        sort = {'straight': [], 'triple': [], 'pair': []}
+        for k in total:
+            if k[-1] == 'straight':
+                sort['straight'].append(k)
+            elif k[-1] in ['triple','gang','angang']:
+                sort['triple'].append(k)
+            else:
+                sort['pair'].append(k)
+        shatter = [] #打散的牌
+
         for i in total:
-            if self.reach:
+            shatter += i[:-1]
+        orphan = orphan_count(shatter)
+        #先放一下七对子也能有的牌型
+        color = set()
+        for i in shatter:
+            color.add(i.suit)
+        if (0 in color) + (1 in color) + (2 in color) <= 1:
+            #字一色
+            if (0 in color) + (1 in color) + (2 in color) == 1:
+                result.append(-2)
+            #清一色
+            elif len(color) ==1:
+                if self.close:
+                    result.append(32)
+                else:
+                    result.append(33)
+            #混一色
+            else:
+                if self.close:
+                    result.append(27)
+                else:
+                    result.append(28)
+        #老头相关
+        if orphan >= 5:
+            temp = 2
+            if stat ==2 or not sort['straight']:
+                for unit in total:
+                    if unit[0].rank not in [1, 9]:
+                        temp = 1
+                    if unit[0].rank != 0:
+                        temp =0
+                        break
+                if temp == 2:
+                    result.append(-4) # 清老头
+                elif temp == 1:
+                    result.append(17) # 混老头
+        if orphan and (17 not in result):
+            temp = 0
+            for unit in total:
+                if unit[0].rank in [1,9] or unit[-2].rank in [1,9]:
+                    temp += 2
+                    continue
+                elif unit[0].rank != 0:
+                    temp = 0
+                    break
+            if temp == 10:
+                result.append(30 - self.close) # 纯全
+            elif temp != 0:
+                result.append(24 - self.close) # 混全
+
+        #立直
+        if self.reach:
+            if 26 not in result:
                 result.append(0)
-        return result
+        #断幺九
+        if orphan == 0:
+            result.append(1)
+
+        #以下都是七对不可能有的牌型
+        if stat == 2:
+            return [result, 25] #固定25符
+        #自风 场风 三元
+        for i in sort['triple']:
+            if i[0].suit == 3 + self.wind:
+                result.append(2)
+            if i[0].suit == 3:
+                result.append(3)
+            if i[0].suit in [7, 8, 9]:
+                result.append(4)
+        #平和
+        if self.close:
+            if not (sort['triple']) and stat == 1:
+                result.append(7)
+            #一杯口
+            if len(sort['straight']) > 1:
+                for k in range(len(sort['straight']) - 1):
+                    if sort['straight'][k][0] == sort['straight'][k + 1][0]:
+                        result.append(8)
+            #二杯口
+            if len(sort['straight']) > 2:
+                for k in range(len(sort['straight']) - 2):
+                    if sort['straight'][k][0] == sort['straight'][k + 1][0] == sort['straight'][k + 2][0]:
+                        result.append(31)
+            if len(sort['triple']) >= 3:
+                if len(sort['triple']) == 4:
+                    result.append()
+        #四暗刻
+            if len(sort['triple'])>=3:
+                result.append(14)
+                if len(sort['triple'])>=4:
+                    if stat == 6:
+                        result.append(-5)
+                    else:
+                        result.append(-6)
+        if not sort['straight']:
+            result.append(13)
+        if self.gang >=3:
+            result.append(15)#三杠
+            if self.gang>=4:
+                result.append(-7)#四杠
+        #三色同顺
+        if len(sort['straight'])>=3:
+            temp_list = list(combinations(sort['straight'], 3))
+            for i in temp_list:
+                if i[0][0].rank == i[1][0].rank == i[2][0].rank:
+                    if i[0][0].suit != i[1][0].suit and i[0][0].suit != i[2][0].suit and i[1][0].suit != i[2][0].suit:
+                        result.append(20 - self.close)
+        #三色同刻
+
+        if stat != 1 and stat != 6:
+            fu += 2 #除了双碰和两面，只有边坎单调了
+        if sort['pair'][0][0].suit in [7, 8, 9, 3, 3 + self.wind]:
+            fu += 2 #自风场风三元将头
+        for unit in total:
+            if unit[-1] == 'triple':
+                if unit not in self.shown:
+                    print('debug msg: 一个暗刻')
+                    if unit[0].rank in [0,1,9]:
+                        fu += 8
+                    else:
+                        fu += 4
+                else:
+                    print('debug msg: 一个明刻')
+                    if unit[0].rank in [0,1,9]:
+                        fu += 4
+                    else:
+                        fu += 2
+            elif unit[-1] == 'gang':
+                if unit[0].rank in [0, 1, 9]:
+                    fu += 16
+                else:
+                    fu += 8
+            elif unit[-1] == 'angang':
+                if unit[0].rank in [0, 1, 9]:
+                    fu += 32
+                else:
+                    fu += 16
+        fu = (fu // 10 + 1) * 10
+        if not self.close:
+            if not sort['triple']:
+                if stat == 1:
+                    fu = 30 #副露平和固定30符
+        return [result, fu]
 
     def calc(self, new, stat):
+        fu = 20
         # stat是表示特殊和牌的一个整数
+        temp_hand = hand(self.wind)
+        temp_hand.move = self.move.copy()
+        temp_hand.move.append(new)
+        temp_hand.move = clean_handlike(temp_hand.move)  # 生成一个14张牌的可能和牌结构
+        temp_hand.shown = self.shown.copy()
+        temp_hand.possible_detect()
+        kinded = []
         if stat == 2:
-            self.move.append(new)
-            self.possible_detect()
-            result = self.kind(self.pair, 2)
-            return [result, self.move]
+            temp_pair = []
+            for i in temp_hand.pair:
+                empty_pair = []
+                empty_pair.append(temp_hand.move[i[0]])
+                empty_pair.append(temp_hand.move[i[1]])
+                empty_pair.append('pair')
+                temp_pair.append(empty_pair)
+
+            result = self.kind(temp_pair, 2)
+            return [result, temp_hand.move]
+        #国士这些不用管
         if stat == 3:
             self.move.append(new)
             return [[-1], self.move]
         if stat == 4:
             self.move.append(new)
             return [[-2], self.move]
-        temp_hand = hand(self.wind)
-        temp_hand.move = clean_handlike(temp_hand.move.append(new))  # 生成一个14张牌的可能和牌结构
-        temp_hand.shown = self.shown
-        temp_hand.possible_detect()
-        kinded = []
+
         for chosen in temp_hand.pair:
             temp = temp_hand.possible.copy()
             j = 0
             for i in range(len(temp)):
-                if chosen[0] in temp[i] or chosen[1] in temp[i]:
+                if chosen[0] in temp[i - j] or chosen[1] in temp[i - j]:
                     temp.pop(i - j)
                     j += 1
             if len(temp_hand.shown) == 4:
                 formed = temp_hand.shown + temp_hand.pair
-                kinded = [temp_hand.kind(formed, stat)]
+                kinded = [self.kind(formed, stat)]
             else:
                 temp_comb = get_combinations(temp, 4 - len(temp_hand.shown))
                 for choice in temp_comb:
                     if have_same(choice) == False:
-                        formed = temp_hand.shown
+                        formed = temp_hand.shown.copy()
                         for unit in choice:
                             temp = unit.copy()
-                            for k in range(len(temp)):
+                            for k in range(len(temp) - 1):
                                 temp[k] = temp_hand.move[unit[k]].copy()
                             formed.append(temp)
-                        formed.append (chosen)
-                        kinded_temp = temp_hand.kind(formed, stat)
+                        temp = [None, None, 'pair'] #把选中的雀头对子提炼出来
+                        temp[0] = temp_hand.move[chosen[0]]
+                        temp[1] = temp_hand.move[chosen[1]]
+                        formed.append (temp)
+                        kinded_temp = self.kind(formed, stat)
                         kinded.append(kinded_temp)
                         # 算上手牌和副露
         best = 0
         result = None
         for p in kinded:
-            if kind_into_score(p) > best:
-                result = p
+            if kind_into_score(p[0]) >= best:
+                result = p[0]
+                fu = p[1]
         # 把牌理好准备结算
         final_list = self.move.copy()
         for unit in temp_hand.shown:
-            final_list.append(unit[:-1])
-        return [result, final_list]
+            final_list += unit[:-1]
+        final_list += [new]
+        return [result, fu, final_list]
 
     def wait(self):
 
@@ -348,15 +550,20 @@ class hand():
 
         # 七对子
         if (len(self.shown) == 0 and len(self.pair) == 6):
-            print("七对")
-            for e in range(len(self.move)):
-                g = 0
-                for f in self.pair:
+            temp = 0
+            for i in self.possible:
+                if i[-1] == 'triple':
+                    temp += 1
+            if temp < 1:
+                print("七对")
+                for e in range(len(self.move)):
+                    g = 0
+                    for f in self.pair:
 
-                    if e in f:
-                        g = 1
-                if g == 0:
-                    waiting.append((self.move[e], 2))
+                        if e in f:
+                            g = 1
+                    if g == 0:
+                        waiting.append((self.move[e], 2))
         # 基本的和牌形状
         if len(self.possible) + len(self.shown) >= 3:
             status = 1
@@ -397,7 +604,7 @@ class hand():
                             # 双碰听牌
                             if right[0] == right[1]:
                                 waiting.append(right[0])
-                                waiting.append((self.move[chosen[0]], 0))
+                                waiting.append((self.move[chosen[0]], 6))
                                 if (chosen in self.pair):
                                     self.pair.remove(chosen)
                             # 两连的平和
@@ -429,7 +636,7 @@ class hand():
                                 for j in one:
                                     lala.append(j)
                             for item in lala:
-                                if item == 'straight' or item == 'triple' or item == 'double':
+                                if item == 'straight' or item == 'triple' or item == 'pair':
                                     lala.remove(item)
                             # print(lala)
                             for i in range(len(self.move)):
@@ -448,16 +655,12 @@ class hand():
         final_waiting = list(set(waiting))
         # 去除重复项目
         # final_waiting = rank_card(final_waiting)
-        '''
         dict_waiting = {}
         for i in range(len(final_waiting)):
             temp_comb = self.calc(final_waiting[i][0], final_waiting[i][1])
-            if temp_comb[0]:
-                dict_waiting[final_waiting[i][0]] = temp_comb
-            else:
-                print("{}无役".format(final_waiting[i]))
-        '''
-        return final_waiting
+            dict_waiting[final_waiting[i][0]] = temp_comb
+
+        return dict_waiting
 
 
 # 牌河
