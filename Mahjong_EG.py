@@ -13,7 +13,19 @@ names = {
     8: '發',
     9: '中',
 }
-names_reversed = {value: key for key, value in names.items()}
+names_for_program = {
+    0: 'm',
+    1: 'p',
+    2: 's',
+    3: 'east',
+    4: 'south',
+    5: 'west',
+    6: 'north',
+    7: 'bai',
+    8: 'facai',
+    9: 'zhong',
+}
+names_reversed = {value: key for key, value in names_for_program.items()}
 
 
 # 游戏进行！
@@ -28,7 +40,7 @@ class player(object):
         self.ranking = ranking
         self.hand = hand(wind)
         self.pure = True  # 被别人碰过吗
-        self.zhen = set()  # 振听
+        self.zhen = False  # 振听
         self.reach = False  # 是否立直
         self.cangang = [] #有可能加杠或者暗杠吗
 
@@ -53,6 +65,8 @@ class player(object):
 
 
     def play(self, round):
+        if not self.reach:
+            self.zhen = False
         print('现在余{}, {}'.format(round, self))
         new = self.hand.move[-1] #进张
         print(f'进张为{new}')
@@ -70,6 +84,7 @@ class player(object):
                 self.hand.gang += 1
                 while kngang in self.hand.move:
                     self.hand.move.remove(kngang)
+                return [1, self.name, i[0], 1]
 
 
         #加杠
@@ -101,7 +116,7 @@ class player(object):
                     if len(ans) == 2:
                         cardans = card(int(ans[0]), names_reversed[ans[1]])
                     else:
-                        cardans = card(0, names_reversed[ans[0]])
+                        cardans = card(0, names_reversed[ans])
                     for i in range(len(self.hand.move)):
                         if self.hand.move[i] == cardans:
                             if cardans in self.cangang:
@@ -192,9 +207,9 @@ class player(object):
             j = target[choice][1]
             temp.append(self.hand.move[i])
             temp.append(self.hand.move[j])
-            if new.rank<self.hand.move[i]:
+            if new.rank<self.hand.move[i].rank:
                 temp.insert(0, new)
-            elif new.rank<self.hand.move[j]:
+            elif new.rank<self.hand.move[j].rank:
                 temp.insert(1, new)
             else:
                 temp.append(new)
@@ -275,7 +290,12 @@ class round(object):
         self.ipa = [False, False, False, False] #一发计算
     def __str__(self):
         return ('東{}局，当前玩家:\n{}'.format(self.but_pos + 1, self.players))
-
+    def clear_ipa(self): #鸣牌去一发
+        for one in self.players:
+            if self.ipa[one.name]:
+                for unit in list(one.hand.waiting.keys()):
+                    one.hand.waiting[unit][0].remove(5)
+        self.ipa = [False, False, False, False]
     def initialize(self):
 
         for i in range(4):
@@ -287,6 +307,7 @@ class round(object):
             self.players[i].hand.initiate()
     def around(self, num, last):
         #四家立直
+        print('上一轮出牌: ', last)
         if self.reach == [True, True, True, True]:
             return [-3, card[0, 0]]
 
@@ -320,10 +341,21 @@ class round(object):
         for one in self.players:
             if one.name == (num + 3) % 4:
                 continue
-            if last in one.wait:
-                if last not in one.zhen:
-                    temp = one.ron(last)
-                    win.append([one.name, temp[0], temp[1]])
+            if last in list(one.hand.waiting.keys()):
+                if one.hand.waiting[last][0]: #有番
+                    if not one.zhen:
+                        if last not in self.river.repeat[one.name]:
+                            temp = one.ron(last)
+                            if temp:
+                                win.append([one.name] + temp) #[名字，[番种]，符，数量]
+                        else:
+                            print('{}号玩家无法胡，理由：现物振听'.format(one.name))
+                            one.zhen = True
+                    else:
+                        print('{}号玩家无法胡，理由：同巡/立直振听'.format(one.name))
+                else:
+                    print('{}号玩家无法胡，理由：无役'.format(one.name))
+
                     # 查看是否有一炮多响
             if win:
                 return [-1, win]
@@ -338,7 +370,7 @@ class round(object):
 
                 ans = one.pon(last, self.history)  # 碰
                 if ans:
-                    self.ipa = [False, False, False, False]
+                    self.clear_ipa()
                     self.players[(num + 3) % 4].pure = False
                     respond = ans
                     who = one.name
@@ -346,7 +378,7 @@ class round(object):
             if last in gang:
                 ans = one.gang(last, self.history, self.draw.total[-1])  # 杠
                 if ans:
-                    self.ipa = [False, False, False, False] #鸣牌破一发
+                    self.clear_ipa() #鸣牌破一发
                     one.hand.move.append(self.draw.total.pop(-1)) #补牌
                     self.players[(num + 3) % 4].pure = False
                     self.draw.show_dora(1)
@@ -355,19 +387,19 @@ class round(object):
                     break
         if respond:
             # 谁出了牌，出了什么牌
-            return ([who, respond])
+            return ([0,who, respond])
         # 到num号玩家行动！
         if last in list(self.players[num].hand.inter['c'].keys()):
             respond = self.players[num].chi(last, self.history)  # 吃
             if respond:
-                self.ipa = [False, False, False, False]
+                self.clear_ipa()
                 self.players[(num + 3) % 4].pure = False
-                return ([num, respond])
-        self.players[(num + 3) % 4].zhen.add(last)
+                return ([0,num, respond])
+        self.river.repeat[(num + 3) % 4].add(last)
         # 牌进入牌河
         self.river.rivers[(num + 3) % 4].append(last)  # 放进牌河
         #self.river.update((num + 3) % 4, last)
-        self.players[(num + 3) % 4].zhen.add(last)
+        #self.players[(num + 3) % 4].zhen.add(last)
         print("東{}局".format(self.but_pos + 1), end=', ')
         #自摸
 
@@ -376,20 +408,16 @@ class round(object):
                 for line in self.players[num].hand.waiting:
                     if 6 not in line[0]:
                         line[0].append(6)
-            else:
-                for line in self.players[num].hand.waiting:
-                    if 6 in line[0]:
-                        line[0].remove(6)
             if self.draw.total[0] in list(self.players[num].hand.waiting.keys()):
                 if self.players[num].hand.waiting[self.draw.total[0]][0]:
                     ans = self.players[num].zimo(self.draw.total[0])
                     if ans:
                         return [-1, [num] + ans]
                 else:
-                    print('自摸无役')
+                    print('{}号玩家无法胡，理由：无役'.format(one.name))
         #出牌
         self.players[num].hand.move.append(self.draw.total.pop(0))
-        ans = self.players[num].play(self.history)
+        ans = [0,num,self.players[num].play(self.history)]
         while ans[0] == 1: #只要反馈是暗杠或者加杠就能一直接着加
             self.draw.show_dora(1)
             #抢杠
@@ -406,8 +434,7 @@ class round(object):
                                 qianggang = one.ron(ans)
                                 if qianggang:#抢杠
                                     return [-1, [one.name] + qianggang]
-                                for wait in one.hand.waiting:
-                                    wait[0].remove(12)
+
             self.players[num].hand.move.append(self.draw.total.pop())
             ans = self.players[num].play(self.history) #加牌之后继续出
 
@@ -424,14 +451,28 @@ class round(object):
                     if temp ==1:
                         for i in list(self.players[num].hand.waiting.keys()):
                             self.players[num].hand.waiting[i][0].append(26)
-                self.ipa[num] = True #一发
+                for line in self.players[num].hand.waiting:
+                    line[0].append(5)
                 self.reach[num] = True
-            else:
-                self.ipa[num] = False #一巡到了
-        return ([num, ans])
+                self.ipa[num] = True
+            elif self.ipa[num]:
+                self.ipa[num] = False
+                for line in self.players[num].hand.waiting:
+                    line[0].remove(5)
+                 #一巡到了
+        return (ans)
 
     def agame(self):
         self.initialize()
-        self.players[self.but_pos].play(self.history)
-
-        return 0
+        temp = []
+        ans = [0, self.but_pos, self.players[self.but_pos].play(self.history)]
+        while self.history >= 0:
+            if ans[0] == 0: #正常出牌
+                ans = self.around((ans[1] + 1) % 4, ans[2])
+            if ans[0] == -1:
+                return ans[1]#胡了
+            if ans[0] == -2:
+                return -2
+            if ans[0] == -3:
+                return -3
+        return -4

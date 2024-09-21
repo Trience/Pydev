@@ -22,7 +22,7 @@ def demo():
 def test_wait():
     test_hand = hand(0)
 
-    test_hand.move = [card(2, 0), card(2, 0), card(3, 0), card(3, 0), card(4, 0), card(4, 0), card(2, 2), card(2, 2),card(2, 0), card(3, 0), card(4, 0), card(4, 1), card(5, 1)]
+    #test_hand.move = [card(2, 0), card(2, 0), card(3, 0), card(3, 0), card(4, 0), card(4, 0), card(2, 2), card(2, 2),card(2, 0), card(3, 0), card(4, 0), card(4, 1), card(2, 2)]
     #test_hand.move = [card(2, 0), card(2, 0), card(3, 0), card(3, 0), card(4, 0), card(4, 0), card(2, 2), card(2, 2),
                       #card(0, 3), card(0, 3), card(0, 3), card(4, 1), card(5, 1)]
     #test_hand.move = [card(1, 1), card(1, 1), card(1, 1), card(3, 1), card(2, 1), card(4, 1), card(5, 1), card(6, 1), card(7, 1), card(8, 1), card(9, 1), card(9, 1), card(9, 1)]
@@ -41,20 +41,30 @@ def test_wait():
     c = player(1, 1, 0, 25000, 0)
     d = player(1, 1, 0, 25000, 0)
     print(a.hand.waiting)
+#test_wait()
+
+def test_game():
+    a = player(0, 0, 0, 35000, 0)
+    b = player(1, 1, 0, 30000, 1)
+    c = player(2, 1, 0, 25000, 2)
+    d = player(3, 1, 0, 20000, 3)
+    game = round(0,0,[a,b,c,d])
+
+    #game.agame()
+    def test_ron():
+        game.initialize()
+        c.hand.move = [card(2, 0), card(2, 0), card(3, 0), card(3, 0), card(4, 0), card(4, 0), card(2, 2), card(2, 2),card(0, 3), card(0, 3), card(0, 3), card(4, 1), card(5, 1)]
+        c.hand.clean()
+        print(game.around(2,card(3,1)))
+    test_ron()
+test_game()
 
 
 
-test_wait()
 
-def easy():
-    test_hand = hand(0)
-
-    test_hand.move = [card(2, 0), card(2, 0), card(3, 0), card(3, 0), card(4, 0), card(4, 0), card(2, 2), card(2, 2),
-                      card(0, 3), card(0, 3), card(0, 3), card(4, 1), card(5, 1)]
-    print(card(2, 0)< card(2, 0))
 
 end_time = time.time()
-#easy()
+
 print(f"运行时间: {end_time - start_time} 秒")
 
 def demo_inter():
@@ -79,3 +89,4 @@ def demo_inter():
     test_hand.print_all()
     print(test_hand.wait())
 # demo_inter()
+

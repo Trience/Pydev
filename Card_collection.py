@@ -87,9 +87,11 @@ class card(object):
 
 # 抽卡叠
 class pile():
-    dora = []
-    doradown = []
-    gang = 0
+    def __init__(self):
+        self.total = []
+        self.dora = []
+        self.doradown = []
+        self.gang = 0
 
     def ini(self):  # 初始化，给牌堆136张牌
         # 我知道这里是屎山但是我修改编码系统之后懒得改了，就这样吧
@@ -120,6 +122,7 @@ class pile():
 
     # 把牌洗一遍
     def shuffle(self):
+        #random.seed(1)
         temp = []
         i = 0
         fix = len(self.total)
@@ -414,7 +417,7 @@ class hand():
                         result.append(-5)
                     else:
                         result.append(-6)
-        if not sort['straight']:
+        if not sort['straight']: #碰碰
             result.append(13)
         if self.gang >=3:
             result.append(15)#三杠
@@ -436,13 +439,13 @@ class hand():
         for unit in total:
             if unit[-1] == 'triple':
                 if unit not in self.shown:
-                    print('debug msg: 一个暗刻')
+                    #print('debug msg: 一个暗刻')
                     if unit[0].rank in [0,1,9]:
                         fu += 8
                     else:
                         fu += 4
                 else:
-                    print('debug msg: 一个明刻')
+                    #print('debug msg: 一个明刻')
                     if unit[0].rank in [0,1,9]:
                         fu += 4
                     else:
@@ -534,6 +537,12 @@ class hand():
         return [result, fu, final_list]
 
     def wait(self):
+        reserve = []
+        if self.waiting:
+             #保留的从外部添加的牌型
+            temp = self.waiting[list(self.waiting.keys())[0]][0] #随便一份听牌的番种，这些被添加的东西都是全部添加的
+            if 26 in temp:
+                reserve.append(26)
 
         waiting = []
         # 国士
@@ -604,6 +613,7 @@ class hand():
                         if right[0] == right[1]:
                             #waiting.append((right[0]))
                             waiting.append((self.move[chosen[0]], 6))
+                            waiting.append((right[0], 6))
                             if (chosen in self.pair):
                                 self.pair.remove(chosen)
                         # 两连的平和
@@ -641,11 +651,8 @@ class hand():
                         for i in range(len(self.move)):
                             if i not in lala:
                                 waiting.append((self.move[i], 0))
-
-                else:
-                    print("你也别急")
         else:
-            print("别急")
+            return {}
         #九莲
         final_waiting = list(set(waiting))
         if len(final_waiting) == 9:
@@ -659,6 +666,7 @@ class hand():
         for i in range(len(final_waiting)):
             temp_comb = self.calc(final_waiting[i][0], final_waiting[i][1])
             dict_waiting[final_waiting[i][0]] = temp_comb
+            dict_waiting[final_waiting[i][0]][0] += reserve #把诸如两立直之类的东西加回来
 
         return dict_waiting
 
