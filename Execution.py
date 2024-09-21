@@ -50,13 +50,13 @@ def test_game():
     d = player(3, 1, 0, 20000, 3)
     game = round(0,0,[a,b,c,d])
 
-    #game.agame()
+    game.agame()#测试整个游戏
     def test_ron():
         game.initialize()
         c.hand.move = [card(2, 0), card(2, 0), card(3, 0), card(3, 0), card(4, 0), card(4, 0), card(2, 2), card(2, 2),card(0, 3), card(0, 3), card(0, 3), card(4, 1), card(5, 1)]
         c.hand.clean()
         print(game.around(2,card(3,1)))
-    test_ron()
+    #test_ron() #这个是单元测试
 test_game()
 
 
