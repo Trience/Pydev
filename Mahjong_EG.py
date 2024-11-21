@@ -70,6 +70,7 @@ class player(object):
         print('现在余{}, {}'.format(round, self))
         new = self.hand.move[-1] #进张
         print(f'进张为{new}')
+        self.hand.print_all()
         #暗杠
         if new in list(self.hand.inter['g'].keys()):
             self.cangang.append(new)
@@ -81,10 +82,11 @@ class player(object):
                 for i in range(4):
                     temp.append(kngang)
                 temp.append('angang')
+                self.hand.shown.append(temp)
                 self.hand.gang += 1
                 while kngang in self.hand.move:
                     self.hand.move.remove(kngang)
-                return [1, self.name, i[0], 1]
+                return [1, self.name, kngang, 1]
 
 
         #加杠
@@ -102,7 +104,7 @@ class player(object):
             ans = self.hand.move.pop(-1)
             return ans
         else:
-            self.hand.print_all()
+            #self.hand.print_all()
 
 
             self.hand.clean()
@@ -406,8 +408,8 @@ class round(object):
         if self.players[num].hand.waiting:
             if self.players[num].hand.close:
                 for line in self.players[num].hand.waiting:
-                    if 6 not in line[0]:
-                        line[0].append(6)
+                    if 6 not in self.players[num].hand.waiting[line][0]:
+                        self.players[num].hand.waiting[line][0].append(6)
             if self.draw.total[0] in list(self.players[num].hand.waiting.keys()):
                 if self.players[num].hand.waiting[self.draw.total[0]][0]:
                     ans = self.players[num].zimo(self.draw.total[0])
@@ -418,25 +420,28 @@ class round(object):
         #出牌
         self.players[num].hand.move.append(self.draw.total.pop(0))
         ans = [0,num,self.players[num].play(self.history)]
-        while ans[0] == 1: #只要反馈是暗杠或者加杠就能一直接着加
+        while isinstance(ans[2],list): #只要反馈是暗杠或者加杠就能一直接着加
+            #只有在暗杠时，ans的第三项是一个列表，纯纯的dog water
             self.draw.show_dora(1)
             #抢杠
             for one in self.players:
                 if one.hand.waiting:
                     for line in list(one.hand.waiting.keys()):
-                        if line == ans[2]:
+                        if line == ans[2][2]:
+                            #如果之后优化了记得把后一个[2]去掉
                             if ans[-1] == 1: #暗杠
                                 if -1 in one.hand.waiting[line][0]:
-                                    one.ron(ans[2])#国士无双抢暗杠
+                                    one.ron(ans[2][2])#国士无双抢暗杠
                             else:
                                 for wait in one.hand.waiting:
                                     wait[0].append(12)
-                                qianggang = one.ron(ans)
+                                qianggang = one.ron(ans[2][2])
                                 if qianggang:#抢杠
                                     return [-1, [one.name] + qianggang]
 
             self.players[num].hand.move.append(self.draw.total.pop())
-            ans = self.players[num].play(self.history) #加牌之后继续出
+            #ans = self.players[num].play(self.history) #加牌之后继续出
+            ans = [0,num,self.players[num].play(self.history)]
 
 
 
@@ -462,10 +467,14 @@ class round(object):
                  #一巡到了
         return (ans)
 
-    def agame(self):
+    def agame(self,test = None):
         self.initialize()
         temp = []
         ans = [0, self.but_pos, self.players[self.but_pos].play(self.history)]
+        if test == 'Gang':
+            self.players[1].hand.move = [card(1, 1), card(1, 1), card(1, 1), card(6, 1), card(7, 1), card(8, 1), card(1, 2), card(2, 2),card(3, 2), card(3, 0), card(3, 0), card(4, 1), card(5, 1)]
+            self.players[1].hand.clean()
+            self.draw.total[0] = card(1,1)
         while self.history >= 0:
             if ans[0] == 0: #正常出牌
                 ans = self.around((ans[1] + 1) % 4, ans[2])

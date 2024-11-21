@@ -232,8 +232,14 @@ class hand():
             print(units, end=" ")
         print("副露:", end=' ')
         for units in self.shown:
-            for i in range(3):
-                print(units[i], end=' ')
+            if units[-1] == 'angang':
+                print('□',units[1],'', units[2],'□')
+            if units[-1] == 'gang':
+                for i in range(4):
+                    print(units[i], end=' ')
+            else:
+                for i in range(3):
+                    print(units[i], end=' ')
             print(' | ')
         print('')
 
@@ -248,7 +254,7 @@ class hand():
         for units in self.shown:
             for i in range(3):
                 print(units[i], end=' ')
-            print(' | ')
+            print(' | ',end='')
         print('')
 
     # 理牌
