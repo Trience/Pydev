@@ -5,5 +5,5 @@
 
 **Card_collection**储存了card, pile, hand等基本类
 
-**Mahjong_EG**储存了player, game等高级类，也是游戏本体位置
+**Mahjong_EG**储存了player, game等高级类，同时是RL脚本运行位置
 
